@@ -479,6 +479,7 @@ def upgrade_charm():
         emit_cephconf()
     apt_install(packages=filter_installed_packages(ceph.determine_packages()),
                 fatal=True)
+    update_nrpe_config()
 
 
 @hooks.hook('nrpe-external-master-relation-joined',
