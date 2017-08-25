@@ -48,6 +48,7 @@ from charmhelpers.core.host import (
     service_reload,
     service_restart,
     add_to_updatedb_prunepath,
+    rsync,
 )
 from charmhelpers.fetch import (
     add_source,
@@ -80,6 +81,7 @@ from charmhelpers.contrib.hardening.harden import harden
 
 hooks = Hooks()
 STORAGE_MOUNT_PATH = '/var/lib/ceph'
+NAGIOS_PLUGINS = '/usr/local/lib/nagios/plugins'
 
 
 def check_for_upgrade():
@@ -487,7 +489,7 @@ def upgrade_charm():
             'nrpe-external-master-relation-changed')
 def update_nrpe_config():
     # python-dbus is used by check_upstart_job
-    apt_install('python-dbus')
+    apt_install(['python-dbus', 'nvme-cli'])
     hostname = nrpe.get_nagios_hostname()
     current_unit = nrpe.get_nagios_unit_name()
     nrpe_setup = nrpe.NRPE(hostname=hostname)
@@ -496,6 +498,15 @@ def update_nrpe_config():
         description='process check {%s}' % current_unit,
         check_cmd=('/bin/cat /var/lib/ceph/osd/ceph-*/whoami |'
                    'xargs -I@ status ceph-osd id=@ && exit 0 || exit 2')
+    )
+    if os.path.isdir(NAGIOS_PLUGINS):
+        rsync(os.path.join(os.getenv('CHARM_DIR'), 'files', 'nagios',
+                           'check_nvme.sh'),
+              os.path.join(NAGIOS_PLUGINS, 'check_nvme.sh'))
+    nrpe_setup.add_check(
+        shortname='nvme-status',
+        description='Check NVME health on {%s}' % current_unit,
+        check_cmd=(os.path.join(NAGIOS_PLUGINS, 'check_nvme.sh'))
     )
     nrpe_setup.write()
 
