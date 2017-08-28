@@ -494,7 +494,7 @@ def update_nrpe_config():
         shortname='ceph-osd',
         description='process check {%s}' % current_unit,
         check_cmd=('/bin/cat /var/lib/ceph/osd/ceph-*/whoami |'
-                   'xargs -I"unit" systemctl status ceph-osd@unit.service && exit 0 || exit 2')
+                   'xargs -I"unit" systemctl status ceph-osd@unit.service > /dev/null && exit 0 || exit 2')
     )
     if os.path.isdir(NAGIOS_PLUGINS):
         rsync(os.path.join(os.getenv('CHARM_DIR'), 'files', 'nagios',
