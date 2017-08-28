@@ -497,7 +497,7 @@ def update_nrpe_config():
     nrpe_setup.add_check(
         shortname='ceph-osd',
         description='process check {%s}' % current_unit,
-        check_cmd=('systemctl list-units | egrep "ceph-osd\@[0-9]*\.service" | awk "{print $1}" |'
+        check_cmd=('systemctl list-units | egrep -o "ceph-osd\@[0-9]+\.service"'
                    'xargs -r -I"unit" systemctl status unit > /dev/null && exit 0 || exit 2')
     )
     if os.path.isdir(NAGIOS_PLUGINS):
