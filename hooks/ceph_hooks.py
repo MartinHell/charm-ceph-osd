@@ -490,16 +490,19 @@ def update_nrpe_config():
     hostname = nrpe.get_nagios_hostname()
     current_unit = nrpe.get_nagios_unit_name()
     nrpe_setup = nrpe.NRPE(hostname=hostname)
-    nrpe_setup.add_check(
-        shortname='ceph-osd',
-        description='process check {%s}' % current_unit,
-        check_cmd=('systemctl list-units | egrep -o "ceph-osd\@[0-9]+\.service"'
-                   'xargs -r -I"unit" systemctl status unit > /dev/null && exit 0 || exit 2')
-    )
     if os.path.isdir(NAGIOS_PLUGINS):
+        rsync(os.path.join(os.getenv('CHARM_DIR'), 'files', 'nagios',
+                           'check_ceph_osd.sh'),
+              os.path.join(NAGIOS_PLUGINS, 'check_ceph_osd.sh'))
+
         rsync(os.path.join(os.getenv('CHARM_DIR'), 'files', 'nagios',
                            'check_nvme.sh'),
               os.path.join(NAGIOS_PLUGINS, 'check_nvme.sh'))
+    nrpe_setup.add_check(
+        shortname='ceph-osd',
+        description='process check {%s}' % current_unit,
+        check_cmd(os.path.join(NAGIOS_PLUGINS, 'check_ceph_osd.sh'))
+    )
     nrpe_setup.add_check(
         shortname='nvme-status',
         description='Check NVME health on {%s}' % current_unit,
