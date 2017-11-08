@@ -501,7 +501,7 @@ def update_nrpe_config():
     nrpe_setup.add_check(
         shortname='ceph-osd',
         description='process check {%s}' % current_unit,
-        check_cmd(os.path.join(NAGIOS_PLUGINS, 'check_ceph_osd.sh'))
+        check_cmd=(os.path.join(NAGIOS_PLUGINS, 'check_ceph_osd.sh'))
     )
     nrpe_setup.add_check(
         shortname='nvme-status',
